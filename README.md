@@ -75,6 +75,8 @@ Fetch process looks like this:
     + if result is "rejected", print reason to console (if reason is that torrent was publicated before last fetch, don't print anything)
 1. Save last fetch time and update filters parameters in `resources.json`, using `new_params` return value from filters
 
+![Scheme](images/scheme.png)
+
 ## Customization
 
 You can write your own functions in `torrents.py` and `filters.py`, for fetching files from different torrent websites.
