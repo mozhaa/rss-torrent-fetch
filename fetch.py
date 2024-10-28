@@ -4,7 +4,6 @@ import time
 import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from functools import partial
 from termcolor import colored
 
 from torrents import *
@@ -30,16 +29,21 @@ class Fetcher:
         self.qbt_client = qbt_client
     
     def fetch(self, resources_fp):
+        print(colored('New fetch loop iteration', 'cyan'))
         with open(resources_fp, 'r') as f:
             resources = json.load(f)
         for resource in resources:
             print(colored(f'Fetching resource: "{resource['rss_url']}"', 'white'))
             response = self.tosho_client.get(resource['rss_url'])
             
-            filter = partial(globals()[resource['filter']['name']], params=resource['filter']['params'])
+            filter = globals()[resource['filter']['name']]
             items = globals()[resource['torrent']](response.text)
             for item in items:
-                accepted, reason, new_params = filter(item=item, last_fetch_time=self.last_fetch_time)
+                accepted, reason, new_params = filter(
+                    item=item, 
+                    last_fetch_time=self.last_fetch_time, 
+                    params=resource['filter']['params']
+                )
                 if accepted:
                     print(colored(f'\t"{item['title']}" accepted.', 'green'))
                     self.qbt_client.add_torrent(item['url'])
@@ -65,7 +69,7 @@ def main():
     
     while True:
         fetcher.fetch(resources_fp=config['fetch']['resources_fp'])
-        time.sleep(int(config['fetch']['fetch_interval']))
+        time.sleep(float(config['fetch']['fetch_interval']))
 
 
 if __name__ == '__main__':
