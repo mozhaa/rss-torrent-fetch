@@ -43,7 +43,7 @@ Tool for automatically fetch torrents from RSS, and download them using qBitTorr
 3. Open `resources.json` and write resources you want to fetch in this format:
 
     + `rss_url` - URL to get RSS from
-    + `torrent` - name of python function, declared in file `torrents.py` (different for different torrent RSS feeds)
+    + `parser` - name of python function, declared in file `parsers.py` (different for different torrent RSS feeds)
     + `filter` - name of python function, declared in file `filters.py` (method that filters torrents to download)
 
     Example:
@@ -52,7 +52,7 @@ Tool for automatically fetch torrents from RSS, and download them using qBitTorr
     [
         {
             "rss_url": "https://feed.animetosho.org/rss2?only_tor=1&filter%5B0%5D%5Bt%5D=nyaa_class&filter%5B0%5D%5Bv%5D=remake&aid=17480",
-            "torrent": "anime_tosho",
+            "parser": "anime_tosho",
             "filter": {
             "name": "erai_raws_1080p_hevc",
             "params": {
@@ -69,27 +69,27 @@ Tool for automatically fetch torrents from RSS, and download them using qBitTorr
 Fetch process looks like this:
 
 1. Get RSS from `rss_url`
-1. Get list of torrents, using some `torrent` function from `torrents.py`
+1. Get list of torrent items, using some `parser` function from `parsers.py`
 1. Pass every torrent item through some `filter` function from `filters.py`
-    + if result is "accepted", send URL to qBitTorrent (URL must be returned from `torrent` function in `item['url']`)
+    + if result is "accepted", send URL to qBitTorrent (URL must be returned from `parser` function in `item['url']`)
     + if result is "rejected", print reason to console (if reason is that torrent was publicated before last fetch, don't print anything)
 1. Save last fetch time and update filters parameters in `resources.json`, using `new_params` return value from filters
 
-![Scheme](images/scheme.png)
+<!-- ![Scheme](images/scheme.png) -->
 
 ## Customization
 
-You can write your own functions in `torrents.py` and `filters.py`, for fetching files from different torrent websites.
+You can write your own functions in `parsers.py` and `filters.py`, for fetching files from different torrent websites.
 
-### 1. `torrents.py`
+### 1. `parsers.py`
 
-Function in `torrents.py` must take RSS text as input, and return list of python objects, that represent torrents.
+Function in `parsers.py` must take RSS text as input, and return list of python objects, that represent torrent items.
 You can return them in format you want, but their title and Torrent URL must be accessible via `item['title']` and `item['url']` respectively.
 Title is used for pringing logs in console, and URL is used for passing it to qBitTorrent (that must be URL to `.torrent` file).
 
 ### 2. `filters.py`
 
-Function in `filters.py` must take item, that represents torrent, last fetch timestamp and additional filter parameters and return three values: 
+Function in `filters.py` must take object, that represents torrent item, last fetch timestamp and additional filter parameters and return three values: 
 - `accepted: bool` - download this file or not
 - `reason: str` - message to print in console, if file was rejected
 - `new_params: obj` - new parameters, to be saved into `resources.json` (these new parameters then will be passed into filter)

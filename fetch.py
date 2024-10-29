@@ -6,7 +6,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from termcolor import colored
 
-from torrents import *
+from parsers import *
 from filters import *
 
 
@@ -37,7 +37,7 @@ class Fetcher:
             response = self.tosho_client.get(resource['rss_url'])
             
             filter = globals()[resource['filter']['name']]
-            items = globals()[resource['torrent']](response.text)
+            items = globals()[resource['parser']](response.text)
             for item in items:
                 accepted, reason, new_params = filter(
                     item=item, 
